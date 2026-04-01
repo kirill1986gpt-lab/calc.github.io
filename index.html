@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор навеса — рассчитайте стоимость онлайн</title>
+  <meta name="description" content="Интерактивный калькулятор стоимости автомобильного навеса. Выберите размеры, материалы и получите точную смету за секунды.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="calc-wrapper">
+  <!-- Header -->
+  <header class="calc-header">
+    <h1>Калькулятор навеса</h1>
+    <p>Рассчитайте стоимость автомобильного навеса за пару кликов</p>
+  </header>
+
+  <div class="calc-grid">
+
+    <!-- ═══ Размеры ═══ -->
+    <div class="card" id="dimensions-card">
+      <div class="card-title"><span class="icon">📏</span> Размеры</div>
+
+      <div class="field-group">
+        <label class="field-label">Длина навеса</label>
+        <div class="field-row">
+          <input type="range" id="length-range" min="2" max="20" step="0.5" value="6">
+          <input type="number" id="length-num" class="num-badge" min="2" max="20" step="0.5" value="6">
+          <span class="unit">м</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Ширина навеса</label>
+        <div class="field-row">
+          <input type="range" id="width-range" min="2" max="10" step="0.5" value="3.5">
+          <input type="number" id="width-num" class="num-badge" min="2" max="10" step="0.5" value="3.5">
+          <span class="unit">м</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Высота навеса</label>
+        <div class="field-row">
+          <input type="range" id="height-range" min="2" max="4.5" step="0.1" value="2.5">
+          <input type="number" id="height-num" class="num-badge" min="2" max="4.5" step="0.1" value="2.5">
+          <span class="unit">м</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Регион строительства</label>
+        <select class="styled-select" id="region-select">
+          <option value="moscow">Москва и Московская область</option>
+          <option value="voronezh">Воронежская область</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ═══ Опции ═══ -->
+    <div class="card" id="options-card">
+      <div class="card-title"><span class="icon">⚙️</span> Опции</div>
+
+      <!-- Зашивка стен -->
+      <div class="field-group">
+        <label class="field-label">Зашивка стен</label>
+        <div class="wall-checks">
+          <label class="wall-btn" id="wall-back-check">
+            <input type="checkbox" id="wall-back">
+            <span class="wall-btn-text">Задняя</span>
+          </label>
+          <label class="wall-btn" id="wall-left-check">
+            <input type="checkbox" id="wall-left">
+            <span class="wall-btn-text">Левая</span>
+          </label>
+          <label class="wall-btn" id="wall-right-check">
+            <input type="checkbox" id="wall-right">
+            <span class="wall-btn-text">Правая</span>
+          </label>
+        </div>
+        <div class="material-select-wrapper" id="wall-material-wrap">
+          <select class="styled-select" id="wall-material"></select>
+        </div>
+      </div>
+
+      <!-- Фриз -->
+      <div class="field-group">
+        <label class="check-row" id="friz-check">
+          <input type="checkbox" id="has-friz">
+          <span class="check-indicator">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </span>
+          <span class="check-text">Фриз</span>
+        </label>
+        <div class="material-select-wrapper" id="friz-material-wrap">
+          <select class="styled-select" id="friz-material"></select>
+        </div>
+      </div>
+
+      <!-- Зашивка потолка -->
+      <div class="field-group">
+        <label class="check-row" id="ceiling-check">
+          <input type="checkbox" id="has-ceiling">
+          <span class="check-indicator">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </span>
+          <span class="check-text">Зашивка потолка</span>
+        </label>
+        <div class="material-select-wrapper" id="ceiling-material-wrap">
+          <select class="styled-select" id="ceiling-material"></select>
+        </div>
+      </div>
+
+      <!-- Водосток -->
+      <div class="field-group">
+        <label class="check-row" id="drain-check">
+          <input type="checkbox" id="has-drain">
+          <span class="check-indicator">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </span>
+          <span class="check-text">Водосток</span>
+        </label>
+      </div>
+
+      <!-- Освещение -->
+      <div class="field-group">
+        <label class="check-row" id="lighting-check">
+          <input type="checkbox" id="has-lighting">
+          <span class="check-indicator">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </span>
+          <span class="check-text">Освещение</span>
+        </label>
+      </div>
+
+      <!-- Навес с хозблоком -->
+      <div class="field-group">
+        <div class="wall-checks">
+          <label class="wall-btn" id="hozblok-check">
+            <input type="checkbox" id="has-hozblok">
+            <span class="wall-btn-text">Навес с хозблоком</span>
+          </label>
+        </div>
+        <div class="hozblok-options" id="hozblok-options">
+          <div class="field-group">
+            <label class="field-label">Длина хозблока</label>
+            <div class="field-row">
+              <input type="range" id="hozblok-length-range" min="2" max="20" step="0.5" value="3">
+              <input type="number" id="hozblok-length-num" class="num-badge" min="2" max="20" step="0.5" value="3">
+              <span class="unit">м</span>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Ширина хозблока</label>
+            <div class="field-row">
+              <input type="range" id="hozblok-width-range" min="2" max="10" step="0.5" value="2">
+              <input type="number" id="hozblok-width-num" class="num-badge" min="2" max="10" step="0.5" value="2">
+              <span class="unit">м</span>
+            </div>
+          </div>
+          <div class="material-select-wrapper" id="hozblok-material-wrap">
+            <label class="field-label">Материал хозблока</label>
+            <select class="styled-select" id="hozblok-material"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Результат ═══ -->
+    <div class="card result-card">
+      <div class="total-label">Стоимость навеса</div>
+      <div class="total-price" id="total-price">0 ₽</div>
+      <div class="total-area" id="total-area">Площадь: 21 м²</div>
+
+      <div class="small-order-notice" id="small-order-notice">
+        ⚠️ В стоимость включены транспортные расходы
+      </div>
+
+      <button class="detail-toggle" id="detail-toggle">
+        Показать детализацию
+        <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+
+      <div class="detail-breakdown" id="detail-breakdown">
+        <table class="detail-table">
+          <thead>
+            <tr><th>Позиция</th><th>Стоимость</th></tr>
+          </thead>
+          <tbody id="detail-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="cta-row">
+        <button class="cta-btn primary" id="cta-order">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.8 19.8 0 01-8.63-3.07A19.5 19.5 0 016.18 14 19.79 19.79 0 013.11 5.4 2 2 0 015.09 3.18h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.91 11a16 16 0 006.09 6.09l1.18-1.42a2 2 0 012.11-.45 12.84 12.84 0 002.81.7 2 2 0 011.72 2z"></path></svg>
+          Заказать замер
+        </button>
+        <button class="cta-btn secondary" id="cta-fix">
+          Зафиксировать цену
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /calc-grid -->
+</div><!-- /calc-wrapper -->
+
+<!-- ═══ Модальное окно лид-формы ═══ -->
+<div class="modal-overlay" id="lead-modal">
+  <div class="modal-box">
+    <button class="modal-close" id="modal-close">&times;</button>
+
+    <div id="modal-form-content">
+      <h2>Оставьте заявку</h2>
+      <p class="modal-subtitle">Мы свяжемся с вами для уточнения деталей и назначения замера</p>
+
+      <div class="modal-field">
+        <label for="lead-name">Ваше имя</label>
+        <input type="text" id="lead-name" placeholder="Иван Иванов">
+      </div>
+      <div class="modal-field">
+        <label for="lead-phone">Телефон</label>
+        <input type="tel" id="lead-phone" placeholder="+7 (___) ___-__-__">
+      </div>
+      <div class="modal-field">
+        <label for="lead-location">Локация</label>
+        <input type="text" id="lead-location" placeholder="Город, район или дачный поселок">
+      </div>
+      <div class="modal-field">
+        <label for="lead-comment">Комментарий</label>
+        <textarea id="lead-comment" rows="3" placeholder="Любые дополнительные пожелания..."></textarea>
+      </div>
+      <button class="modal-submit" id="lead-submit">Отправить заявку</button>
+    </div>
+
+    <div class="modal-success" id="modal-success">
+      <div class="check-circle">✓</div>
+      <h3>Заявка отправлена!</h3>
+      <p>Менеджер свяжется с вами в ближайшее время</p>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="config.js"></script>
+<script src="calculator.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
