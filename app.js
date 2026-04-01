@@ -71,6 +71,7 @@
     modalClose:    $('#modal-close'),
     modalFormContent: $('#modal-form-content'),
     modalSuccess:  $('#modal-success'),
+    leadForm:      $('#lead-form'),
     leadSubmit:    $('#lead-submit'),
     leadName:      $('#lead-name'),
     leadPhone:     $('#lead-phone'),
@@ -309,30 +310,152 @@
     document.body.style.overflow = '';
   }
 
-  function submitLead() {
+  /* ── Маска для телефона ──────────────────────────────── */
+  function initPhoneMask(inputEl) {
+    inputEl.addEventListener('input', function (e) {
+      if (e.target.value.length === 1 && e.target.value === '8') {
+        e.target.value = '7';
+      }
+      let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
+      if (!x) return;
+      if (!x[1]) {
+        e.target.value = '';
+        return;
+      }
+      if (x[1] !== '7') {
+        x[1] = '7';
+      }
+      
+      let formatted = '+7';
+      if (x[2]) formatted += ' (' + x[2];
+      if (x[3]) formatted += ') ' + x[3];
+      if (x[4]) formatted += '-' + x[4];
+      if (x[5]) formatted += '-' + x[5];
+      
+      e.target.value = formatted;
+    });
+    
+    inputEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && e.target.value.length <= 4) {
+        e.target.value = '';
+      }
+    });
+  }
+
+  async function submitLead(e) {
+    if (e) e.preventDefault();
+
+    // Защита от спам-ботов (honeypot)
+    if (els.leadForm) {
+      const honey = els.leadForm.querySelector('[name="_honey"]').value;
+      if (honey) {
+        console.warn('Spam bot detected');
+        return;
+      }
+    }
+
     const name     = els.leadName.value.trim();
     const phone    = els.leadPhone.value.trim();
     const location = els.leadLocation.value.trim();
     const comment  = els.leadComment.value.trim();
 
-    if (!name || !phone || !location) {
-      alert('Пожалуйста, заполните имя, телефон и локацию.');
+    // Проверка корректности телефона (должно быть 18 символов: +7 (XXX) XXX-XX-XX)
+    if (!name || phone.length < 18 || !location) {
+      alert('Пожалуйста, корректно заполните имя, номер телефона и локацию.');
       return;
     }
 
-    const payload = {
-      name, phone, location, comment,
-      params: lastResult?.params,
-      totalPrice: lastResult?.res?.total,
-    };
+    const params = lastResult?.params || {};
+    const res = lastResult?.res || {};
+    const totalPrice = res.total || 0;
+    
+    // Формируем текстовую детализацию
+    const detailsRows = [];
+    if (res.frameCost !== undefined) {
+      detailsRows.push(`Каркас${res.heightApplied ? ' (с коэф. высоты)' : ''}: ${formatPrice(Math.round(res.frameCost))}`);
+      detailsRows.push(`Кровля (профнастил): ${formatPrice(Math.round(res.roofCost))}`);
+      if (res.wallCount > 0) detailsRows.push(`Зашивка стен (${res.wallNames.join(', ')}) — ${res.wallMaterialName}: ${formatPrice(Math.round(res.wallCost))}`);
+      else detailsRows.push(`Зашивка стен: ${formatPrice(Math.round(res.wallCost))}`);
+      detailsRows.push(`Фриз — ${res.frizMaterialName}: ${formatPrice(Math.round(res.frizCost))}`);
+      detailsRows.push(`Зашивка потолка — ${res.ceilingMaterialName}: ${formatPrice(Math.round(res.ceilingCost))}`);
+      detailsRows.push(`Водосток: ${formatPrice(Math.round(res.drainCost))}`);
+      detailsRows.push(`Освещение: ${formatPrice(Math.round(res.lightingCost))}`);
+      detailsRows.push(`Хозблок — ${res.hozblokMaterialName}: ${formatPrice(Math.round(res.hozblokCost))}`);
+      if (res.smallOrderApplied) detailsRows.push(`Транспортные расходы: ${formatPrice(res.smallOrderSurcharge)}`);
+    }
+    const detailsString = detailsRows.length > 0 ? detailsRows.join('\n') : 'Нет данных расчета';
 
-    console.log('📨 Lead payload:', payload);
+    // Текст сообщения для Telegram
+    const tgMessage = `
+🔥 *Новая заявка (Калькулятор навеса)*
+👤 Имя: ${name}
+📞 Телефон: ${phone}
+📍 Локация: ${location}
+💬 Комментарий: ${comment || 'Нет'}
 
-    // Показать успех
-    els.modalFormContent.style.display = 'none';
-    els.modalSuccess.classList.add('visible');
+📏 *Размеры:* ${params.length || 0}x${params.width || 0}x${params.height || 0}м
+💰 *Итоговая стоимость:* ${formatPrice(totalPrice)}
 
-    setTimeout(closeModal, 2500);
+📋 *Детализация:*
+${detailsString}
+    `.trim();
+
+    // Отправка в Telegram
+    const tgSubmit = fetch('https://api.telegram.org/bot7057481204:AAFaYJipL7yeh1OcS0nW6s92tsqMe6oCFBA/sendMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: '734659908',
+        text: tgMessage,
+        parse_mode: 'Markdown'
+      })
+    });
+
+    // Отправка на почту wladimirterzi@yandex.ru через FormSubmit API
+    const emailSubmit = fetch('https://formsubmit.co/ajax/wladimirterzi@yandex.ru', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        name: name,
+        phone: phone,
+        location: location,
+        comment: comment,
+        _subject: 'Новая заявка на навес с калькулятора',
+        _captcha: 'false',
+        'Итог расчета': formatPrice(totalPrice),
+        'Размеры': `${params.length || 0}x${params.width || 0}x${params.height || 0}м`,
+        'Детализация': detailsString
+      })
+    });
+
+    try {
+      const originalSubmitText = els.leadSubmit.textContent;
+      els.leadSubmit.textContent = 'Отправка...';
+      els.leadSubmit.disabled = true;
+
+      await Promise.all([tgSubmit, emailSubmit]);
+
+      els.leadSubmit.textContent = originalSubmitText;
+      els.leadSubmit.disabled = false;
+
+      // Показать успех
+      els.modalFormContent.style.display = 'none';
+      els.modalSuccess.classList.add('visible');
+  
+      setTimeout(() => {
+        closeModal();
+        if (els.leadForm) els.leadForm.reset();
+      }, 2500);
+
+    } catch (err) {
+      console.error('Ошибка отправки:', err);
+      alert('Произошла ошибка при отправке заявки. Попробуйте снова.');
+      els.leadSubmit.textContent = 'Отправить заявку';
+      els.leadSubmit.disabled = false;
+    }
   }
 
   /* ── Детализация toggle ──────────────────────────────── */
@@ -385,12 +508,15 @@
     // Детализация
     initDetailToggle();
 
+    // Маска телефона
+    if (els.leadPhone) initPhoneMask(els.leadPhone);
+
     // CTA
     els.ctaOrder.addEventListener('click', openModal);
     els.ctaFix.addEventListener('click', openModal);
     els.modalClose.addEventListener('click', closeModal);
     els.modal.addEventListener('click', (e) => { if (e.target === els.modal) closeModal(); });
-    els.leadSubmit.addEventListener('click', submitLead);
+    if (els.leadForm) els.leadForm.addEventListener('submit', submitLead);
 
     // Первичный расчёт
     update();
