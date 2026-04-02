@@ -54,7 +54,7 @@ function calculate(params, cfg) {
   }
 
   // 3. Кровля — всегда включена
-  const roofCost = area * cfg.roofPricePerM2;
+  let roofCost = area * cfg.roofPricePerM2;
 
   // 4. Зашивка стен
   let wallPerimeter = 0;
@@ -105,7 +105,7 @@ function calculate(params, cfg) {
   }
 
   // 7. Водосток = длина навеса × цена за пог.м
-  const drainCost = params.hasDrain ? length * cfg.drainPricePerM : 0;
+  let drainCost = params.hasDrain ? length * cfg.drainPricePerM : 0;
 
   // 8. Освещение
   let lightingCost = 0;
@@ -160,6 +160,7 @@ function calculate(params, cfg) {
   // 11. Коэффициент малого заказа
   const smallOrderApplied = area < cfg.minOrderArea;
   const afterSmallOrder = smallOrderApplied ? subtotal * cfg.smallOrderCoeff : subtotal;
+  let smallOrderSurcharge = smallOrderApplied ? afterSmallOrder - subtotal : 0;
 
   // 11.5 Скидка за регион
   const regionMultiplier = params.region === 'voronezh' ? 0.8 : 1;
@@ -168,6 +169,26 @@ function calculate(params, cfg) {
   // 12. Финальное округление до шага вверх
   const step = cfg.roundingStep;
   const total = Math.ceil(afterRegion / step) * step;
+
+  // 13. Размазываем скидку и округление по всем позициям
+  if (afterSmallOrder > 0) {
+    const ratio = total / afterSmallOrder;
+    frameCost = Math.round(frameCost * ratio);
+    roofCost = Math.round(roofCost * ratio);
+    wallCost = Math.round(wallCost * ratio);
+    frizCost = Math.round(frizCost * ratio);
+    ceilingCost = Math.round(ceilingCost * ratio);
+    drainCost = Math.round(drainCost * ratio);
+    lightingCost = Math.round(lightingCost * ratio);
+    hozblokCost = Math.round(hozblokCost * ratio);
+    smallOrderSurcharge = Math.round(smallOrderSurcharge * ratio);
+
+    const sum = frameCost + roofCost + wallCost + frizCost + ceilingCost + drainCost + lightingCost + hozblokCost + smallOrderSurcharge;
+    const diff = total - sum;
+    if (diff !== 0) {
+      frameCost += diff; // Корректируем возможную погрешность округления
+    }
+  }
 
   return {
     area,
@@ -190,7 +211,7 @@ function calculate(params, cfg) {
     hozblokDetails,
     subtotal,
     smallOrderApplied,
-    smallOrderSurcharge: smallOrderApplied ? afterSmallOrder - subtotal : 0,
+    smallOrderSurcharge,
     total,
   };
 }
